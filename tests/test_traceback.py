@@ -189,6 +189,21 @@ def test_caused_exception():
     assert exception_text.find("ZeroDivisionError") < exception_text.find("ValueError")
 
 
+@pytest.mark.parametrize("chain_attribute", ["__cause__", "__context__"])
+def test_cyclic_exception_chain(chain_attribute):
+    first = ValueError("first")
+    second = RuntimeError("second")
+    setattr(first, chain_attribute, second)
+    setattr(second, chain_attribute, first)
+
+    trace = Traceback.extract(type(first), first, first.__traceback__)
+
+    assert [stack.exc_type for stack in trace.stacks] == [
+        "ValueError",
+        "RuntimeError",
+    ]
+
+
 def test_filename_with_bracket():
     console = Console(width=100, file=io.StringIO())
     try:

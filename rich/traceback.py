@@ -472,6 +472,7 @@ class Traceback:
         grouped_exceptions: Set[BaseException] = (
             set() if _visited_exceptions is None else _visited_exceptions
         )
+        visited_exceptions: Set[int] = set()
 
         def safe_str(_object: Any) -> str:
             """Don't allow exceptions from __str__ to propagate."""
@@ -481,6 +482,10 @@ class Traceback:
                 return "<exception str() failed>"
 
         while True:
+            if id(exc_value) in visited_exceptions:
+                break
+            visited_exceptions.add(id(exc_value))
+
             stack = Stack(
                 exc_type=safe_str(exc_type.__name__),
                 exc_value=safe_str(exc_value),
